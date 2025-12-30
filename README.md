@@ -19,15 +19,22 @@
 
 </div>
 
+<br>
+
 ## 📰 News
 - **2025-12-21**: We officially released **Affectron**, along with an interactive demo page showcasing affective and contextually aligned nonverbal vocalizations in emotional speech synthesis.
+- **2025-12-30**: Added comprehensive **Training** and **Inference** guidance to facilitate reproducibility and ease of use.
 
-## TODO
+<br>
+
+## ⭐ TODO
 - [x] Codebase upload
 - [x] Environment setup
-- [ ] Inference demo
-- [ ] Training guidance
-- [ ] Dataset and training manifest
+- [x] Training guidance
+- [x] Inference guidance
+- [ ] Pretrained checkpoints
+
+<br>
 
 ## Introduction
 <div align="center">
@@ -42,8 +49,11 @@ Emotional speech synthesis benefits greatly from nonverbal vocalizations (NVs), 
 
 We propose **Affectron**, a framework that generates affectively and contextually aligned NVs using NV-augmented training on a small-scale open corpus. 
 
+<br>
 
-## Environment setup
+---
+
+## 0. Environment setup
 ```bash
 conda create -n voicecraft python=3.9.16
 conda activate voicecraft
@@ -65,14 +75,117 @@ mfa model download dictionary english_us_arpa
 mfa model download acoustic english_us_arpa
 ```
 
-## Inference Examples
+<br>
 
+---
 
-## Training
+## 1. Training
 
+This section describes the full training pipeline for Affectron, including dataset preparation, feature extraction, and model training.
 
-## Pretrained checkpoints
+<br>
 
-## Acknowledgements
+### Step 1) Download EARS dataset and split Verbal / NV recordings
+
+Download the EARS dataset following the official instructions: 
+- https://github.com/facebookresearch/ears_dataset
+
+After downloading, split the recordings into **verbal** and **nonverbal vocalization (NV)** subsets as required by the training pipeline.
+
+<br>
+
+### Step 2) Encodec encoding and phoneme extraction
+
+We provide a preprocessing script that:
+- loads utterances and their transcripts,
+- encodes utterances into discrete codes using **Encodec**,
+- converts transcripts into **phoneme sequences**,
+- and builds a phoneme vocabulary (`vocab.txt`).
+
+Run the following command:
+
+```bash
+conda activate voicecraft
+export CUDA_VISIBLE_DEVICES=0
+cd ./data
+
+python phonemize_encodec_encode_hf.py \
+  --dataset_size xs \
+  --download_to path/to/store_huggingface_downloads \
+  --save_dir path/to/store_extracted_codes_and_phonemes \
+  --encodec_model_path path/to/encodec_model \
+  --mega_batch_size 120 \
+  --batch_size 32 \
+  --max_len 30000
+```
+#### Encodec model
+Use the **same Encodec model as the VoiceCraft baseline**:
+- https://huggingface.co/pyp1/VoiceCraft \
+This model is trained on **GigaSpeech XL**, has **56M parameters**, and uses **4 codebooks**, each with **2048 codes**.
+
+<br>
+
+### Step 3) Model training
+Start training with:
+```bash
+sh Train_Affectron_TTSbase.sh
+```
+
+Before running the script, make sure to configure the following variables according to your environment:
+- `dataset`
+- `model_name`
+- `exp_name`
+- `exp_root`
+- `dataset_dir`
+- `load_model_from`
+Training logs and checkpoints will be saved under `exp_root`.
+
+<br>
+
+---
+
+## 2. Inferece
+
+### Step 1) Create a manifest file
+
+Create a meta file under the `./manifest` directory. \
+Each line is **tab-separated** and consists of:
+1. Reference audio path
+2. Text (reference transcript + target generation text)
+3. Utterance ID
+4. Prompt audio length (seconds)
+5. Prompt start time (seconds)
+
+Example:
+```bash
+/dataset/EARS_final/VVNVs/p005_emo_adoration_sentences_0.wav	You're just the sweetest person I know, and I'm so happy to call you my friend. I had the best time with you.	p005_emo_adoration_sentences_0	5.9	0.0
+```
+⚠️ Important (same as the VoiceCraft baseline): \
+Ensure **(prompt length + generation length) ≤ 16 seconds**. \
+Due to limited compute, utterances longer than **16 seconds** were excluded during training.
+
+<br>
+
+### Step 2) Run inference
+```bash
+sh Inference_Affectron_TTSbase.sh
+```
+Before running, set:
+- `model_name`
+- `exp_dir`
+- `output_dir` 
+Generated audio files will be saved under `output_dir`.
+
+<br>
+
+--- 
+## 3. Pretrained checkpoints
+
+To preserve anonymity and avoid download tracking during the review process, pretrained checkpoints will be released **after the review is completed**.
+
+<br>
+
+---
+## 4. Acknowledgements
 **Our codes are based on the following repos:**
 * [VoiceCraft](https://github.com/jasonppy/VoiceCraft/tree/master)
