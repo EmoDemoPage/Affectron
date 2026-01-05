@@ -38,7 +38,7 @@
 
 ## Introduction
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/201d8a7a-fb9b-4939-8c4a-d283779d4846" width="75%">
+  <img src="https://github.com/user-attachments/assets/ff242aa9-2499-42a5-9a85-45c3f60d35d1" width="75%">
   <br>
   <em>Overall framework of Affectron.</em>
 </div>
