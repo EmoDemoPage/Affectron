@@ -68,12 +68,12 @@ class dataset(torch.utils.data.Dataset):
         num_nv = random.randint(0, 2)
 
         if self.args.data_augmentation and num_nv != 0:
-            frames_fn   = Path("/dataset/EARS_final") / "TextGrid_txt" / f"{base_name}.frames.txt"
-            eecs_fn = Path("/dataset/EARS_final") / "EECSscroe_10" / f"{base_name}.txt"
-            results_dir = "/dataset/EARS_final/sphere_insertion_txt_results"
+            frames_fn   = Path("/dataset") / "TextGrid_txt" / f"{base_name}.frames.txt"
+            eecs_fn = Path("/dataset") / "EECSscroe_top10" / f"{base_name}.txt"
+            results_dir = "/dataset/sphere_insertion_txt_results"
             with open(frames_fn, "r", encoding="utf-8") as f:
                 frames = [int(line.strip()) for line in f if line.strip()]
-            num_intervals = len(frames)
+            num_intervals = len(frames) 
                 
             nv_infos = []
             for nv_idx in range(num_nv):
@@ -137,7 +137,7 @@ class dataset(torch.utils.data.Dataset):
                         
                 else:
                     spk_name = base_name.split("_")[0]
-                    nvs_dir = "/dataset/EARS_final/NVs"
+                    nvs_dir = "/dataset/NVs"
                     pattern = os.path.join(nvs_dir, f"{spk_name}*.wav")
                     wav_files = glob(pattern)
                     selected_wav = random.choice(wav_files)
@@ -192,8 +192,8 @@ class dataset(torch.utils.data.Dataset):
                         for token_list in new_encos_str
                     ]
                 nv_len = len(encos_nv[0])
-                center = frame_idx + nv_len // 2   # 정수 center
-                y_mask_center = int(center)        # 이름도 center로!
+                center = frame_idx + nv_len // 2 
+                y_mask_center = int(center)
                 return x, y, y_mask_center
             
             else:

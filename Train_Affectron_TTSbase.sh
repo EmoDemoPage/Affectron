@@ -6,7 +6,7 @@ model_name=Affectron_TTSbase
 mkdir -p /out/affectron/${model_name}/logs/${dataset}
 exp_root="/out/affectron/${model_name}"
 exp_name=e330M_ft
-dataset_dir="/dataset/EARS_final_encodec"
+dataset_dir="/dataset/EARS_TTS_encodec"
 encodec_codes_folder_name="encodec_16khz_4codebooks"
 load_model_from="./pretrained_models/330M_TTSEnhanced.pth"
 

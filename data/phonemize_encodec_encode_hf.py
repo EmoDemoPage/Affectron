@@ -37,7 +37,7 @@ class EarsDataset(Dataset):
     
 def parse_args():
     parser = argparse.ArgumentParser(description="encode the librilight dataset using encodec model")
-    parser.add_argument("--input_dir", type=Path, default="/dataset/EARS_final/VVs")
+    parser.add_argument("--input_dir", type=Path, default="/dataset/EARS_split")
     parser.add_argument("--meta", type=Path, default="./meta.txt")
     parser.add_argument('--save_dir', type=str, default="/dataset/EARS_TTS_encodec")
     parser.add_argument('--encodec_model_path', type=str, default="/checkpoints/encodec/encodec_4cb2048_giga.th")
