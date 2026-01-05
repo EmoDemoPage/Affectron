@@ -55,8 +55,8 @@ We propose **Affectron**, a framework that generates affectively and contextuall
 
 ## 0. Environment setup
 ```bash
-conda create -n voicecraft python=3.9.16
-conda activate voicecraft
+conda create -n affectron python=3.9.16
+conda activate affectron
 
 pip install -e git+https://github.com/facebookresearch/audiocraft.git@c5157b5bf14bf83449c17ea1eeb66c19fb4bc7f0#egg=audiocraft
 pip install xformers==0.0.22
@@ -94,7 +94,7 @@ After downloading, split the recordings into **verbal** and **nonverbal vocaliza
 
 <br>
 
-### Step 2) Encodec encoding and phoneme extraction
+### Step 2) Processing
 
 We provide a preprocessing script that:
 - loads utterances and their transcripts,
@@ -102,26 +102,84 @@ We provide a preprocessing script that:
 - converts transcripts into **phoneme sequences**,
 - and builds a phoneme vocabulary (`vocab.txt`).
 
-Run the following command:
+Run the following command: \
+✅ Option 1: Run the full pipeline with a single script (recommended) \
+This option executes all processing steps sequentially using a shell script.
+```bash
+conda activate affectron
+export CUDA_VISIBLE_DEVICES=0
+cd ./data
+sh Processing.sh
+```
+
+<br>
+
+✅ Option 2: Run each step manually \
+Alternatively, you can run each processing step individually as shown below.
 
 ```bash
-conda activate voicecraft
+conda activate affectron
 export CUDA_VISIBLE_DEVICES=0
 cd ./data
 
+# Convert TextGrid alignments to frame-level text files
+python convert_textgrid.py \
+  --input_dir path/to/TextGrid_mfa \
+  --output_dir path/to/TextGrid_txt \
+  --frame_rate 50
+
+# Extract emotion2vec embeddings (utterance-level)
+python emotion2vec_extract.py \
+  --vv_wav_dir path/to/EARS_split \
+  --vv_emb_dir path/to/EARS_split_e2v_emb \
+  --nv_wav_dir path/to/EARS_NVs \
+  --nv_emb_dir path/to/EARS_NVs_e2v_emb \
+  --output_EECS_dir path/to/EECSscore_top10 \
+  --top_k 10
+
+# Extract emotion attributes (Valence–Arousal–Dominance)
+python emotion_attributes_extract.py \
+  --vv_wav_dir path/to/EARS_split \
+  --vv_vad_outdir path/to/VVs_word_vad \
+  --nv_wav_dir path/to/EARS_NVs \
+  --nv_vad_outdir path/to/NVs_vad
+
+# Estimate NV insertion positions in spherical VAD space
+python spherical_insertion_pipeline.py \
+  --eecs_dir path/to/EECSscore_top10 \
+  --vvs_dir path/to/VVs_word_vad \
+  --nvs_vad_dir path/to/NVs_vad \
+  --out_json_dir path/to/sphere_insertion_results \
+  --out_txt_dir path/to/sphere_insertion_txt_results
+
+# Encodec encoding and phoneme extraction
 python phonemize_encodec_encode_hf.py \
-  --dataset_size xs \
-  --download_to path/to/store_huggingface_downloads \
-  --save_dir path/to/store_extracted_codes_and_phonemes \
+  --input_dir path/to/EARS_split \
+  --meta path/to/meta.txt \
+  --save_dir path/to/EARS_TTS_encodec \
   --encodec_model_path path/to/encodec_model \
   --mega_batch_size 120 \
   --batch_size 32 \
   --max_len 30000
 ```
+
 #### Encodec model
 Use the **same Encodec model as the VoiceCraft baseline**:
 - https://huggingface.co/pyp1/VoiceCraft \
 This model is trained on **GigaSpeech XL**, has **56M parameters**, and uses **4 codebooks**, each with **2048 codes**.
+
+#### Emotion2vec model
+We use the **Emotion2Vec model** for utterance-level emotional representation and similarity computation.
+- https://github.com/ddlBoJack/emotion2vec \
+Emotion2Vec produces continuous emotion embeddings that capture high-level affective characteristics of speech. \
+In this pipeline, Emotion2Vec embeddings are used to compute EECS-based similarity between VV and NV utterances.
+
+#### Emotion Attributes Model
+We use a **wav2vec2-based regression model** to predict continuous **Valence–Arousal–Dominance (VAD)** attributes from speech. \
+- https://huggingface.co/audeering/wav2vec2-large-robust-12-ft-emotion-msp-dim \
+This model is trained on the **MSP-Podcast emotion dataset** and predicts a 3-dimensional continuous VAD vector for each utterance or word-level segment. \
+In our pipeline, these VAD vectors are further transformed into spherical coordinates, and **angular distance in VAD space** is used to estimate optimal NV insertion positions.
+
 
 <br>
 
