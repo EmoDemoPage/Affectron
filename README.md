@@ -38,7 +38,7 @@
 
 ## Introduction
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/ff242aa9-2499-42a5-9a85-45c3f60d35d1" width="75%">
+  <img src="https://github.com/user-attachments/assets/3a81d946-0645-4a46-921a-583b06304bbb" width="75%">
   <br>
   <em>Overall framework of Affectron.</em>
 </div>
@@ -47,7 +47,7 @@
 
 Emotional speech synthesis benefits greatly from nonverbal vocalizations (NVs), such as laughter and sighs, which convey affect beyond words. However, NVs are often underrepresented due to limited data availability and reliance on proprietary resources or NV detectors.
 
-We propose **Affectron**, a framework that generates affectively and contextually aligned NVs using NV-augmented training on a small-scale open corpus. 
+We propose **Affectron**, a framework that generates affectively and contextually aligned NVs using NV-augmented training on a small-scale open and decoupled corpus. 
 
 <br>
 
